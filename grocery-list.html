@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lista e Ushqimeve – Bilbil</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sage:      #7A9E7E;
+      --sage-lt:   #EEF4EE;
+      --olive:     #4A6741;
+      --sand:      #F7F3ED;
+      --clay:      #C8856A;
+      --ink:       #1E2422;
+      --muted:     #8A9690;
+      --white:     #FFFFFF;
+      --radius:    12px;
+    }
+
+    body {
+      background: var(--sand);
+      font-family: 'Inter', sans-serif;
+      color: var(--ink);
+      min-height: 100vh;
+      padding: 24px 16px 80px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    header h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2rem;
+      color: var(--olive);
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+    }
+
+    header p {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 4px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .progress-bar-wrap {
+      background: #DDE8DD;
+      border-radius: 999px;
+      height: 6px;
+      margin: 12px auto 0;
+      max-width: 280px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      background: var(--sage);
+      height: 100%;
+      border-radius: 999px;
+      width: 0%;
+      transition: width 0.35s ease;
+    }
+
+    .progress-label {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    /* Category cards */
+    .category {
+      background: var(--white);
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--sage-lt);
+    }
+
+    .category-icon {
+      font-size: 1.2rem;
+    }
+
+    .category-name {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--sage);
+    }
+
+    .item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 16px;
+      cursor: pointer;
+      transition: background 0.15s;
+      border-bottom: 1px solid var(--sage-lt);
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .item:last-child { border-bottom: none; }
+
+    .item:active { background: var(--sage-lt); }
+
+    .item.checked {
+      opacity: 0.45;
+    }
+
+    .item.checked .item-name {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    /* Custom checkbox */
+    .checkbox {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 2px solid #C5D5C6;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, border-color 0.2s;
+      background: var(--white);
+    }
+
+    .item.checked .checkbox {
+      background: var(--sage);
+      border-color: var(--sage);
+    }
+
+    .checkbox svg {
+      display: none;
+      width: 13px;
+      height: 13px;
+      stroke: white;
+      stroke-width: 2.5;
+      fill: none;
+    }
+
+    .item.checked .checkbox svg { display: block; }
+
+    .item-name {
+      font-size: 0.95rem;
+      font-weight: 400;
+      flex: 1;
+      color: var(--ink);
+      transition: color 0.2s;
+    }
+
+    .item-detail {
+      font-size: 0.78rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    /* Done button */
+    .done-wrap {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: linear-gradient(to top, var(--sand) 70%, transparent);
+      padding: 20px 24px 24px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .btn-done {
+      background: var(--clay);
+      color: white;
+      border: none;
+      border-radius: 999px;
+      padding: 14px 48px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(200, 133, 106, 0.4);
+      transition: transform 0.12s, box-shadow 0.12s;
+      letter-spacing: 0.02em;
+    }
+
+    .btn-done:active {
+      transform: scale(0.96);
+      box-shadow: 0 2px 8px rgba(200, 133, 106, 0.35);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: 20px; left: 50%; transform: translateX(-50%) translateY(-80px);
+      background: var(--olive);
+      color: white;
+      padding: 10px 22px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: transform 0.3s ease;
+      z-index: 100;
+      white-space: nowrap;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    @media (min-width: 480px) {
+      body { max-width: 440px; margin: 0 auto; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Lista e Ushqimeve</h1>
+  <p>Regjim ushqimor • 7 ditë</p>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progressFill"></div>
+  </div>
+  <p class="progress-label" id="progressLabel">0 / 0 artikuj</p>
+</header>
+
+<div id="list"></div>
+
+<div class="done-wrap">
+  <button class="btn-done" onclick="resetAll()">✓ Blerjet u kryen</button>
+</div>
+
+<div class="toast" id="toast">Lista u rivendos! 🌿</div>
+
+<script>
+const categories = [
+  {
+    icon: "🥩",
+    name: "Mish & Peshk",
+    items: [
+      { name: "Fileto pule", detail: "≥ 1.5 kg" },
+      { name: "Biftek vici", detail: "≥ 600 g" },
+      { name: "Salmon", detail: "150–200 g" },
+      { name: "Peshk (koc / levrek / merluc)", detail: "200 g" },
+      { name: "Proshutë pule", detail: "100 g" },
+    ]
+  },
+  {
+    icon: "🥚",
+    name: "Vezë & Bulmet",
+    items: [
+      { name: "Vezë", detail: "doz. 2–3" },
+      { name: "Qumësht lope", detail: "1 litër" },
+      { name: "Gjizë", detail: "30 g+" },
+      { name: "Djathë philadelphia", detail: "150 g" },
+      { name: "Djathë lope / dele", detail: "50–80 g" },
+    ]
+  },
+  {
+    icon: "🥦",
+    name: "Perime",
+    items: [
+      { name: "Asparague", detail: "400 g" },
+      { name: "Brokoli", detail: "200 g" },
+      { name: "Lulelaker", detail: "150 g" },
+      { name: "Karotë", detail: "3–4 copë" },
+      { name: "Kastravec", detail: "3–4 copë" },
+      { name: "Domate", detail: "6–8 copë" },
+      { name: "Domate të vogla", detail: "1 pako" },
+      { name: "Qepë", detail: "2–3 copë" },
+      { name: "Rukola", detail: "100 g" },
+      { name: "Gjethe jeshile (sallatë mix)", detail: "1 pako" },
+      { name: "Patate", detail: "2–3 copë" },
+      { name: "Mollë jeshile", detail: "2 copë" },
+    ]
+  },
+  {
+    icon: "🍋",
+    name: "Frute",
+    items: [
+      { name: "Avokado", detail: "3–4 copë" },
+      { name: "Banane", detail: "4–5 copë" },
+      { name: "Frut sezoni", detail: "sipas dëshirës" },
+    ]
+  },
+  {
+    icon: "🌾",
+    name: "Drithëra & Makarona",
+    items: [
+      { name: "Bukë integrale", detail: "1 copë" },
+      { name: "Tërshërë e imet", detail: "300 g" },
+      { name: "Oriz i bardhë", detail: "500 g" },
+      { name: "Spageti", detail: "200 g" },
+      { name: "Tortilla / Pitë (160 kcal)", detail: "1 pak" },
+      { name: "Rice cakes", detail: "1 pak" },
+    ]
+  },
+  {
+    icon: "🥜",
+    name: "Arra & Të thata",
+    items: [
+      { name: "Cashews", detail: "1 qese" },
+      { name: "Bajame", detail: "1 qese" },
+      { name: "Arra", detail: "50 g" },
+      { name: "Miks frutash të thata", detail: "50 g" },
+      { name: "Gjalpë kikiriku", detail: "1 kavanoz" },
+    ]
+  },
+  {
+    icon: "🫙",
+    name: "Yndyrna & Salca",
+    items: [
+      { name: "Vaj ulliri", detail: "1 shishe" },
+      { name: "Salcë domateje", detail: "1 kavanoz" },
+      { name: "Uthull balsamike", detail: "1 shishe" },
+      { name: "Mjaltë", detail: "1 kavanoz" },
+    ]
+  },
+  {
+    icon: "🧂",
+    name: "Erëza",
+    items: [
+      { name: "Kripë", detail: "< 2g/ditë" },
+      { name: "Piper i zi", detail: "" },
+      { name: "Rigon", detail: "" },
+      { name: "Kanellë", detail: "" },
+    ]
+  },
+  {
+    icon: "💊",
+    name: "Suplemente",
+    items: [
+      { name: "Whey protein", detail: "" },
+      { name: "L-Carnitine", detail: "" },
+      { name: "Multivitamin complex", detail: "" },
+    ]
+  },
+];
+
+const STORAGE_KEY = "grocery_checked_v1";
+
+function loadChecked() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
+}
+
+function saveChecked(obj) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); } catch {}
+}
+
+let checked = loadChecked();
+
+function itemKey(catIdx, itemIdx) { return `${catIdx}_${itemIdx}`; }
+
+function updateProgress() {
+  let total = 0, done = 0;
+  categories.forEach((cat, ci) => cat.items.forEach((_, ii) => {
+    total++;
+    if (checked[itemKey(ci, ii)]) done++;
+  }));
+  const pct = total ? Math.round(done / total * 100) : 0;
+  document.getElementById("progressFill").style.width = pct + "%";
+  document.getElementById("progressLabel").textContent = `${done} / ${total} artikuj`;
+}
+
+function render() {
+  const container = document.getElementById("list");
+  container.innerHTML = "";
+
+  categories.forEach((cat, ci) => {
+    const card = document.createElement("div");
+    card.className = "category";
+
+    const header = document.createElement("div");
+    header.className = "category-header";
+    header.innerHTML = `<span class="category-icon">${cat.icon}</span><span class="category-name">${cat.name}</span>`;
+    card.appendChild(header);
+
+    cat.items.forEach((item, ii) => {
+      const key = itemKey(ci, ii);
+      const row = document.createElement("div");
+      row.className = "item" + (checked[key] ? " checked" : "");
+      row.innerHTML = `
+        <div class="checkbox">
+          <svg viewBox="0 0 12 10"><polyline points="1 5 4.5 8.5 11 1"/></svg>
+        </div>
+        <span class="item-name">${item.name}</span>
+        ${item.detail ? `<span class="item-detail">${item.detail}</span>` : ""}
+      `;
+      row.addEventListener("click", () => {
+        checked[key] = !checked[key];
+        saveChecked(checked);
+        row.classList.toggle("checked", checked[key]);
+        updateProgress();
+      });
+      card.appendChild(row);
+    });
+
+    container.appendChild(card);
+  });
+
+  updateProgress();
+}
+
+function resetAll() {
+  checked = {};
+  saveChecked(checked);
+  render();
+  const toast = document.getElementById("toast");
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 2200);
+}
+
+render();
+</script>
+</body>
+</html>
